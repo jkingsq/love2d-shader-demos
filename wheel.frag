@@ -19,8 +19,6 @@ float pos_sine(float theta)
 vec4 color_cycle(float theta)
 {
 
-    /*
-
     vec4 color_xyz = vec4(
         pos_sine(theta),
         pos_sine(theta + 2 * M_PI / 3),
@@ -30,7 +28,7 @@ vec4 color_cycle(float theta)
 
     return color_xyz;
 
-    */
+    /*
 
     float theta_norm = theta / (2 * M_PI);
 
@@ -38,13 +36,16 @@ vec4 color_cycle(float theta)
 
     return vec4(luminance, luminance, luminance, 1.0);
 
+    */
+
 }
 
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 {
     vec4 texturecolor = Texel(tex, texture_coords);
 
-    float wheel_phase = 2 * M_PI * time / 1;
+    // float wheel_phase = 2 * M_PI * time / 40;
+    float wheel_phase = 0.0;
 
     vec2 position = window_scale * vec2(
         texture_coords.x - mouse.x,
@@ -55,11 +56,11 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 
     float max_wave_offset = 4 * M_PI;
 
-    float wave_phase = 2 * M_PI * time / 30;
+    float wave_phase = 2 * M_PI * time / 120;
 
     float wave_theta = 100 / length(position) * 45 - sin(wave_phase) * 50;
 
     float wave_offset = sin(wave_phase) * sin(wave_theta) * max_wave_offset;
 
-    return color_cycle(5 * position_theta + wheel_phase + wave_offset);
+    return color_cycle(1 * position_theta + wheel_phase + wave_offset);
 }
