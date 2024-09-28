@@ -3,6 +3,7 @@ local canvas
 local defaultWindow
 local shaderNum = 1
 local shaderFiles = {
+    "checkerboard.frag",
     "waves.frag",
     "star_grid.frag",
     "wheel.frag"
