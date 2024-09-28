@@ -4,6 +4,15 @@ uniform float time;
 uniform vec2 mouse;
 uniform mat2 window_scale;
 
+// Higher exponents give sharper edges
+float smoothing_exponent = 20.0;
+
+float floor_rounded(float x)
+{
+   return
+    floor(x) + (pow(2 * (x - floor(x)) - 1, smoothing_exponent) + 1) / 2;
+}
+
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
 {
     vec4 texturecolor = Texel(tex, texture_coords);
@@ -38,7 +47,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     position *= 1/tile_scale;
 
     float checkerboard_luminance =
-        mod(floor(position.x) + floor(position.y), 2);
+        mod(floor_rounded(position.x) + floor_rounded(position.y), 2);
 
     float luminance = checkerboard_luminance;
 
