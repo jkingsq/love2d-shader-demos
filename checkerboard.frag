@@ -5,12 +5,29 @@ uniform vec2 mouse;
 uniform mat2 window_scale;
 
 // Higher exponents give sharper edges
-float smoothing_exponent = 20.0;
+float smoothing_exponent = 2.0;
 
+// FIXME this behaves differently on different GPUs I guess?
+// There's probably a built-in glsl function that just does this consistently
 float floor_rounded(float x)
 {
    return
     floor(x) + (pow(2 * (x - floor(x)) - 1, smoothing_exponent) + 1) / 2;
+}
+
+float pos_sine(float theta)
+{
+    return (sin(theta) + 1) / 2;
+}
+
+vec4 color_cycle(float theta)
+{
+    return vec4(
+        pos_sine(theta),
+        pos_sine(theta + 2 * M_PI / 3),
+        pos_sine(theta - 2 * M_PI / 3),
+        1.0
+    );
 }
 
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
@@ -49,6 +66,24 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     float checkerboard_luminance =
         mod(floor_rounded(position.x) + floor_rounded(position.y), 2);
 
+    float color_period = 16;
+    float color_steps = 16;
+    float color_theta =
+        2 * M_PI * time / color_period;
+        // alternate config where tiles step through the color cycle.
+        // the steps looked too abrupt
+        // 2 * M_PI * time
+        // floor_rounded(time / color_period * color_steps)
+        // / color_steps;
+
+    vec4 checkerboard_color =
+        checkerboard_luminance *
+        color_cycle(
+            2 * M_PI / color_steps *
+            (floor_rounded(position.x) + floor_rounded(position.y))
+            + color_theta
+        );
+
     float luminance = checkerboard_luminance;
 
     vec4 checkerboard = vec4(
@@ -58,5 +93,5 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
         1.0
     );
 
-    return checkerboard;
+    return checkerboard_color;
 }
