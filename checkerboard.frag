@@ -40,7 +40,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     );
 
     float tile_scale = 0.2;
-    float wave_amplitude_scale = 2 * tile_scale;
+    float wave_amplitude_scale = 4 * tile_scale;
 
     float wave_amplitude_period = 6.0;
     float wave_amplitude =
@@ -48,8 +48,8 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     float wave_rotation_period = wave_amplitude_period * 8.0;
     float wave_rotation_theta = 2 * M_PI * time / wave_rotation_period;
     mat2 wave_rotation = mat2(
-        cos(wave_rotation_theta), sin(wave_rotation_period),
-        sin(wave_rotation_period), -1 * cos(wave_amplitude_period)
+        cos(wave_rotation_theta), sin(wave_rotation_theta),
+        sin(wave_rotation_theta), -1 * cos(wave_rotation_theta)
     );
     float position_offset_scale =
         wave_amplitude *
@@ -83,15 +83,6 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
             (floor_rounded(position.x) + floor_rounded(position.y))
             + color_theta
         );
-
-    float luminance = checkerboard_luminance;
-
-    vec4 checkerboard = vec4(
-        luminance,
-        luminance,
-        luminance,
-        1.0
-    );
 
     return checkerboard_color;
 }
