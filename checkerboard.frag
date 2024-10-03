@@ -39,10 +39,10 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
         texture_coords.y - mouse.y
     );
 
-    float tile_scale = 0.2;
-    float wave_amplitude_scale = 4 * tile_scale;
+    float tile_scale = 0.5;
+    float wave_amplitude_scale = 1 * tile_scale;
 
-    float wave_amplitude_period = 6.0;
+    float wave_amplitude_period = 60.0;
     float wave_amplitude =
         wave_amplitude_scale * sin(2 * M_PI * time / wave_amplitude_period);
     float wave_rotation_period = wave_amplitude_period * 8.0;
@@ -53,14 +53,14 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     );
     float position_offset_scale =
         wave_amplitude *
-        sin(2 * M_PI * dot(wave_rotation[0], position) / tile_scale);
+        sin(2 * M_PI * dot(wave_rotation[0], position) / tile_scale / 2);
 
     vec2 position_offset =
         tile_scale *
         position_offset_scale *
         wave_rotation[1];
 
-    position += position_offset;
+    position /= position_offset_scale;
     position *= 1/tile_scale;
 
     float checkerboard_luminance =
