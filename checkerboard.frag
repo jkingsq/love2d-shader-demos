@@ -39,7 +39,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
         texture_coords.y - mouse.y
     );
 
-    float tile_scale = 0.5;
+    float tile_scale = 0.3;
     float wave_amplitude_scale = 1 * tile_scale;
 
     float wave_amplitude_period = 60.0;
@@ -53,7 +53,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
     );
     float position_offset_scale =
         wave_amplitude *
-        sin(2 * M_PI * dot(wave_rotation[0], position) / tile_scale / 2);
+        pos_sine(2 * M_PI * dot(wave_rotation[0], position) / tile_scale / 2);
 
     vec2 position_offset =
         tile_scale *
