@@ -61,6 +61,38 @@ function setViewportTransform()
     shader:send("window_scale", viewportTransform)
 end
 
+-- Return only the scale coefficients from the viewportTransform
+function getWindowScale()
+    return {viewportTransform[1], viewportTransform[4]}
+end
+
+function setWindowScale(scaleX, scaleY)
+    viewportTransform = {
+        scaleX, 0,
+        0, scaleY
+    }
+
+    shader:send("window_scale", viewportTransform)
+end
+
+function changePatternScale(s)
+    windowScale = getWindowScale()
+
+    setWindowScale(windowScale[1] / s, windowScale[2] / s)
+    cameraCenter = {
+        cameraPan[1] - love.graphics.getWidth() / 2,
+        cameraPan[2] - love.graphics.getHeight() / 2
+    }
+    cameraPan = {
+        cameraCenter[1] * s + love.graphics.getWidth() / 2,
+        cameraCenter[2] * s + love.graphics.getHeight()/ 2
+    }
+    shader:send("mouse", {
+        cameraPan[1] / love.graphics.getWidth(),
+        cameraPan[2] / love.graphics.getHeight()
+    })
+end
+
 function panCenter()
     cameraPan = {love.graphics.getWidth() / 2, love.graphics.getHeight() / 2}
 end
@@ -124,6 +156,10 @@ function love.keypressed(key)
     elseif key == "r" then
         reloadShader()
         shader:send("mouse", {0.5, 0.5})
+    elseif key == "=" then
+        changePatternScale(1.1)
+    elseif key == "-" then
+        changePatternScale(0.9)
     end
 end
 
