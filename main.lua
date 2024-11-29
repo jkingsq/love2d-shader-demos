@@ -21,6 +21,7 @@ local patternScale = 1.0
 function reloadShader()
     shader = love.graphics.newShader(shaderFiles[shaderNum])
     sendViewportTransform()
+    shader:send("time", love.timer.getTime())
 end
 
 function nextShader()
@@ -147,8 +148,8 @@ function love.keypressed(key)
     elseif key == "p" then
         paused = not paused
     elseif key == "r" then
-        resetViewport()
         reloadShader()
+        resetViewport()
     elseif key == "=" then
         setPatternScale(patternScale * 1.1)
     elseif key == "-" then
