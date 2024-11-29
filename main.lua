@@ -11,12 +11,16 @@ local shaderFiles = {
 local paused = false;
 local dragStart = {0.0, 0.0}
 local dragEnd = {0.0, 0.0}
-local cameraPan = {0.0, 0.0}
+local cameraCenter = {0.0, 0.0}
+
+-- This is automatically written to by setDefaultViewportTransform and should
+-- not be modified elsewhere
+local defaultViewportTransform = {1.0, 0.0, 0.0, 1.0}
+local patternScale = 1.0
 
 function reloadShader()
-    panCenter()
     shader = love.graphics.newShader(shaderFiles[shaderNum])
-    setViewportTransform()
+    sendViewportTransform()
 end
 
 function nextShader()
@@ -25,7 +29,7 @@ function nextShader()
         shaderNum = 1
     end
 
-    panCenter()
+    resetViewport()
     reloadShader()
 end
 
@@ -37,74 +41,64 @@ function setCanvas()
     canvas = love.graphics.newCanvas(love.graphics.getWidth(), love.graphics.getHeight())
 end
 
-function setViewportTransform()
+function setDefaultViewportTransform()
     window = {love.graphics.getWidth(), love.graphics.getHeight()}
-    maxDimension = math.max(defaultWindow[1], defaultWindow[2])
 
-    viewportTransform = {
-        maxDimension / window[1], 0,
-        0, maxDimension / window[2]
-    }
-
-    shader:send("window_scale", viewportTransform)
-end
-
-function setViewportTransform()
-    window = {love.graphics.getWidth(), love.graphics.getHeight()}
     minDimension = math.min(window[1], window[2])
 
-    viewportTransform = {
+    defaultViewportTransform = {
         window[1] / minDimension, 0,
         0, window[2] / minDimension
     }
-
-    shader:send("window_scale", viewportTransform)
 end
 
--- Return only the scale coefficients from the viewportTransform
-function getWindowScale()
-    return {viewportTransform[1], viewportTransform[4]}
+function viewportTransform()
+    return {
+        defaultViewportTransform[1] / patternScale, defaultViewportTransform[2],
+        defaultViewportTransform[3], defaultViewportTransform[4] / patternScale
+    }
 end
 
-function setWindowScale(scaleX, scaleY)
-    viewportTransform = {
-        scaleX, 0,
-        0, scaleY
-    }
-
-    shader:send("window_scale", viewportTransform)
+function sendViewportTransform()
+    shader:send("window_scale", viewportTransform())
 end
 
-function changePatternScale(s)
-    windowScale = getWindowScale()
+function setPatternScale(s)
+    scale_factor = s/patternScale
+    patternScale = s
 
-    setWindowScale(windowScale[1] / s, windowScale[2] / s)
-    cameraCenter = {
-        cameraPan[1] - love.graphics.getWidth() / 2,
-        cameraPan[2] - love.graphics.getHeight() / 2
-    }
-    cameraPan = {
-        cameraCenter[1] * s + love.graphics.getWidth() / 2,
-        cameraCenter[2] * s + love.graphics.getHeight()/ 2
-    }
+    setCameraCenter(
+        cameraCenter[1]*scale_factor,
+        cameraCenter[2]*scale_factor
+    )
+    sendViewportTransform()
+end
+
+function setCameraCenter(centerX, centerY)
+    cameraCenter = {centerX, centerY}
+    sendCameraCenter()
+end
+
+function sendCameraCenter()
+    print("Sending camera center: " .. cameraCenter[1] .. ", " .. cameraCenter[2])
+
     shader:send("mouse", {
-        cameraPan[1] / love.graphics.getWidth(),
-        cameraPan[2] / love.graphics.getHeight()
+        cameraCenter[1] / love.graphics.getWidth() + 0.5,
+        cameraCenter[2] / love.graphics.getHeight() + 0.5
     })
 end
 
-function panCenter()
-    cameraPan = {love.graphics.getWidth() / 2, love.graphics.getHeight() / 2}
+function resetViewport()
+    setCameraCenter(0.0, 0.0)
 end
 
 function love.load()
     defaultWindow = {love.graphics.getWidth(), love.graphics.getHeight()}
 
-    panCenter()
     reloadShader()
     setCanvas()
-
-    shader:send("mouse", {0.5, 0.5})
+    setDefaultViewportTransform()
+    resetViewport()
 end
 
 function love.draw()
@@ -113,13 +107,11 @@ function love.draw()
     end
 
     if love.mouse.isDown(1) then
-        shader:send(
-            "mouse",
-            {
-                (cameraPan[1] + dragEnd[1] - dragStart[1]) / love.graphics.getWidth(),
-                (cameraPan[2] + dragEnd[2] - dragStart[2]) / love.graphics.getHeight()
-            }
+        setCameraCenter(
+            (cameraCenter[1] + dragEnd[1] - dragStart[1]),
+            (cameraCenter[2] + dragEnd[2] - dragStart[2])
         )
+        dragStart = dragEnd
     end
     love.graphics.setShader(shader)
     love.graphics.draw(canvas, 0, 0)
@@ -130,7 +122,7 @@ function love.draw()
         tostring(fps) .. "\n" ..
         "Drag start: " .. tostring(dragStart[1]) .. ", " .. tostring(dragStart[2]) .. "\n" ..
         "Drag end: " .. tostring(dragEnd[1]) .. ", " .. tostring(dragEnd[2]) .. "\n" ..
-        "Camera:" .. tostring(cameraPan[1]) .. ", " .. tostring(cameraPan[2])
+        "Camera: " .. tostring(cameraCenter[1]) .. ", " .. tostring(cameraCenter[2])
     , 0, 0)
 end
 
@@ -145,21 +137,22 @@ function love.keypressed(key)
         love.event.quit()
     elseif key == "f" then
         love.window.setFullscreen(not love.window.getFullscreen())
-        panCenter()
         setCanvas()
-        setViewportTransform()
+        setDefaultViewportTransform()
+        resetViewport()
+        sendViewportTransform()
     elseif key == "n" then
         nextShader()
-        shader:send("mouse", {0.5, 0.5})
+        resetViewport()
     elseif key == "p" then
         paused = not paused
     elseif key == "r" then
+        resetViewport()
         reloadShader()
-        shader:send("mouse", {0.5, 0.5})
     elseif key == "=" then
-        changePatternScale(1.1)
+        setPatternScale(patternScale * 1.1)
     elseif key == "-" then
-        changePatternScale(0.9)
+        setPatternScale(patternScale * 0.9)
     end
 end
 
@@ -174,9 +167,9 @@ end
 
 function love.mousereleased(x, y, button)
     if button == 1 then
-        cameraPan = {
-            cameraPan[1] + dragEnd[1] - dragStart[1],
-            cameraPan[2] + dragEnd[2] - dragStart[2]
+        cameraCenter = {
+            cameraCenter[1] + dragEnd[1] - dragStart[1],
+            cameraCenter[2] + dragEnd[2] - dragStart[2]
         }
 
         love.mouse.setVisible(true)
