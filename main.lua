@@ -120,10 +120,10 @@ function love.draw()
 
     fps = love.timer.getFPS()
     love.graphics.print(
-        tostring(fps) .. "\n" ..
-        "Drag start: " .. tostring(dragStart[1]) .. ", " .. tostring(dragStart[2]) .. "\n" ..
-        "Drag end: " .. tostring(dragEnd[1]) .. ", " .. tostring(dragEnd[2]) .. "\n" ..
-        "Camera: " .. tostring(cameraCenter[1]) .. ", " .. tostring(cameraCenter[2])
+        fps .. "\n" ..
+        "Drag start: " .. dragStart[1] .. ", " .. dragStart[2] .. "\n" ..
+        "Drag end: " .. dragEnd[1] .. ", " .. dragEnd[2] .. "\n" ..
+        "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2]
     , 0, 0)
 end
 
