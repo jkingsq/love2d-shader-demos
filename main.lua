@@ -17,6 +17,7 @@ local cameraCenter = {0.0, 0.0}
 -- not be modified elsewhere
 local defaultViewportTransform = {1.0, 0.0, 0.0, 1.0}
 local patternScale = 1.0
+local zoomVelocity = 0.0
 
 function reloadShader()
     shader = love.graphics.newShader(shaderFiles[shaderNum])
@@ -123,13 +124,28 @@ function love.draw()
         fps .. "\n" ..
         "Drag start: " .. dragStart[1] .. ", " .. dragStart[2] .. "\n" ..
         "Drag end: " .. dragEnd[1] .. ", " .. dragEnd[2] .. "\n" ..
-        "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2]
+        "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2] ..
+        "Zoom: " .. zoomVelocity
     , 0, 0)
 end
 
-function love.update()
+function love.update(dt)
     if love.mouse.isDown(1) then
         dragEnd = {love.mouse.getX(), love.mouse.getY()}
+    end
+
+    if love.keyboard.isDown("=") then
+        zoomVelocity = zoomVelocity + 0.02 * dt
+    elseif love.keyboard.isDown("-") then
+        zoomVelocity = zoomVelocity - 0.02 * dt
+    elseif dt < 0.25 then
+        zoomVelocity = zoomVelocity - 4 * zoomVelocity * dt
+    else
+        zoomVelocity = 0
+    end
+
+    if zoomVelocity ~= 0 then
+        setPatternScale(patternScale + zoomVelocity)
     end
 end
 
@@ -150,10 +166,10 @@ function love.keypressed(key)
     elseif key == "r" then
         reloadShader()
         resetViewport()
-    elseif key == "=" then
-        setPatternScale(patternScale * 1.1)
-    elseif key == "-" then
-        setPatternScale(patternScale * 0.9)
+    -- elseif key == "=" then
+    --     setPatternScale(patternScale * 1.1)
+    -- elseif key == "-" then
+    --     setPatternScale(patternScale * 0.9)
     end
 end
 
