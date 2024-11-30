@@ -82,8 +82,6 @@ function setCameraCenter(centerX, centerY)
 end
 
 function sendCameraCenter()
-    print("Sending camera center: " .. cameraCenter[1] .. ", " .. cameraCenter[2])
-
     shader:send("mouse", {
         cameraCenter[1] / love.graphics.getWidth() + 0.5,
         cameraCenter[2] / love.graphics.getHeight() + 0.5
