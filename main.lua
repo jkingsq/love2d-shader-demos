@@ -8,7 +8,8 @@ local shaderFiles = {
     "star_grid.frag",
     "wheel.frag"
 }
-local paused = false;
+local debugInfo = false
+local paused = false
 local dragStart = {0.0, 0.0}
 local dragEnd = {0.0, 0.0}
 local cameraCenter = {0.0, 0.0}
@@ -118,13 +119,15 @@ function love.draw()
     love.graphics.setShader()
 
     fps = love.timer.getFPS()
-    love.graphics.print(
-        fps .. "\n" ..
-        "Drag start: " .. dragStart[1] .. ", " .. dragStart[2] .. "\n" ..
-        "Drag end: " .. dragEnd[1] .. ", " .. dragEnd[2] .. "\n" ..
-        "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2] ..
-        "Zoom: " .. zoomVelocity
-    , 0, 0)
+    if debugInfo then
+        love.graphics.print(
+            fps .. "\n" ..
+            "Drag start: " .. dragStart[1] .. ", " .. dragStart[2] .. "\n" ..
+            "Drag end: " .. dragEnd[1] .. ", " .. dragEnd[2] .. "\n" ..
+            "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2] ..
+            "Zoom: " .. zoomVelocity
+        , 0, 0)
+    end
 end
 
 function love.update(dt)
@@ -164,10 +167,8 @@ function love.keypressed(key)
     elseif key == "r" then
         reloadShader()
         resetViewport()
-    -- elseif key == "=" then
-    --     setPatternScale(patternScale * 1.1)
-    -- elseif key == "-" then
-    --     setPatternScale(patternScale * 0.9)
+    elseif key == "/" then
+        debugInfo = not debugInfo
     end
 end
 
