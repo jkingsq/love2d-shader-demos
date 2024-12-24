@@ -4,11 +4,12 @@ uniform float time;
 uniform vec2 mouse;
 uniform mat2 window_scale;
 
-int slices = 5;
+int slices = 12;
 
 float band_r = 0.7;
 float arc_center_r = 0.6;
 float rotation_period = 36.0;
+float sharpening_coeff = 1.5;
 
 float pos_sine(float theta)
 {
@@ -48,11 +49,9 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
 
     for(int i = 0; i < slices; i++)
     {
-        float i_nearness = 1.0 - slices / abs(slice - i);
+        int i_index = int(i - slices/2);
+        float i_nearness = 1.0 - 2.0 * i_index / slices;
 
-        // want this to count from (-slices/2, slices/2) with 0 being the i that
-        // matches the slice.  Losing my mind.
-        int i_index = i - slice;
         float i_theta = slice_theta + i_index * slice_angle;
         vec2 i_normal = vec2(cos(i_theta), sin(i_theta));
 
@@ -63,14 +62,18 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
         float distance_along_slice = abs(dot(position, slice_normal));
 
         vec2 band_fixed_point = band_r * i_normal;
-        vec2 arc_center = arc_center_r * arc_center_normal;
+        vec2 arc_center = i_nearness * arc_center_r * arc_center_normal;
 
-        result_color += color_cycle(slice_theta) * 2 * pow(pos_sine(
+        result_color += color_cycle(i_theta) * i_nearness * pow(pos_sine(
             distance(position, arc_center) * (2 * M_PI) / distance(band_fixed_point, arc_center)
-        ), 1.0 + pow(distance_along_slice * 100, 50.0));
+        ), 1.0 + pow(distance_along_slice * 100, 2.0 / i_nearness));
+        //), 10.0 / (distance_along_slice * i_nearness));
     }
 
-    result_color.w = 1.0;
-
-    return result_color;
+    return vec4(
+        pow(result_color.x, sharpening_coeff),
+        pow(result_color.y, sharpening_coeff),
+        pow(result_color.z, sharpening_coeff),
+        1.0
+    );
 }
