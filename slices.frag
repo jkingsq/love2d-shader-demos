@@ -4,12 +4,13 @@ uniform float time;
 uniform vec2 mouse;
 uniform mat2 window_scale;
 
-int slices = 12;
+int slices = 16;
+int iterations = 1;
 
 float band_r = 0.7;
 float arc_center_r = 0.6;
 float rotation_period = 36.0;
-float sharpening_coeff = 1.5;
+float sharpening_coeff = 1.0;
 
 float pos_sine(float theta)
 {
@@ -47,9 +48,9 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
 
     vec4 result_color = vec4(0.0, 0.0, 0.0, 1.0);
 
-    for(int i = 0; i < slices; i++)
+    for(int i = 0; i < iterations; i++)
     {
-        int i_index = int(i - slices/2);
+        int i_index = int(i - iterations/2);
         float i_nearness = 1.0 - 2.0 * i_index / slices;
 
         float i_theta = slice_theta + i_index * slice_angle;
