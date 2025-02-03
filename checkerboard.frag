@@ -44,7 +44,8 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
 
     float wave_amplitude_period = 60.0;
     float wave_amplitude =
-        wave_amplitude_scale * pos_sine(2 * M_PI * time / wave_amplitude_period);
+        wave_amplitude_scale;
+        // wave_amplitude_scale * pos_sine(2 * M_PI * time / wave_amplitude_period);
     float wave_rotation_period = 30.0;
     float wave_rotation_theta = 2 * M_PI * time / wave_rotation_period;
     mat2 wave_rotation = mat2(
