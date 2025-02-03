@@ -7,8 +7,9 @@ uniform mat2 window_scale;
 int slices = 8;
 int iterations = slices;
 
-float band_r = 0.7;
-float arc_center_r = 0.6;
+float pattern_scale = 0.5;
+float band_r = 0.7 * pattern_scale;
+float arc_center_r = 0.6 * pattern_scale;
 float rotation_period = 36.0;
 float sharpening_coeff = 1.5;
 
@@ -60,7 +61,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screencoords)
         vec2 arc_center_normal = vec2(cos(arc_center_theta), sin(arc_center_theta));
 
         // length of position projected onto slice_normal
-        float distance_along_slice = abs(dot(position, slice_normal));
+        float distance_along_slice = abs(dot(position, slice_normal)) / pattern_scale;
 
         vec2 band_fixed_point = band_r * i_normal;
         vec2 arc_center = i_nearness * arc_center_r * arc_center_normal;
