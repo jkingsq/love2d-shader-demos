@@ -21,10 +21,14 @@ local defaultViewportTransform = {1.0, 0.0, 0.0, 1.0}
 local patternScale = 1.0
 local zoomVelocity = 1.0
 
+local timeOffset = 0.0
+local pausedTime = 0.0
+local timeStepIncrement = 1.0
+local timeStepMult = 2.0
+
 function reloadShader()
     shader = love.graphics.newShader(shaderFiles[shaderNum])
     sendViewportTransform()
-    shader:send("time", love.timer.getTime())
 end
 
 function nextShader()
@@ -90,8 +94,28 @@ function sendCameraCenter()
     })
 end
 
+function sendTime()
+    shader:send("time", pausedTime + timeOffset)
+end
+
 function resetViewport()
     setCameraCenter(0.0, 0.0)
+end
+
+function isShiftHeld()
+    return love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
+end
+
+function increaseTimestep()
+    timeStepIncrement = timeStepIncrement * timeStepMult
+
+    timeStepMult = timeStepMult == 2.0 and 5.0 or 2.0
+end
+
+function decreaseTimestep()
+    timeStepIncrement = timeStepIncrement / (timeStepMult == 2.0 and 5.0 or 2.0)
+
+    timeStepMult = timeStepMult == 2.0 and 5.0 or 2.0
 end
 
 function love.load()
@@ -104,9 +128,7 @@ function love.load()
 end
 
 function love.draw()
-    if not paused then
-        shader:send("time", love.timer.getTime())
-    end
+    sendTime()
 
     if love.mouse.isDown(1) then
         setCameraCenter(
@@ -123,25 +145,39 @@ function love.draw()
     if debugInfo then
         love.graphics.print(
             fps .. "\n" ..
-            "Drag start: " .. dragStart[1] .. ", " .. dragStart[2] .. "\n" ..
-            "Drag end: " .. dragEnd[1] .. ", " .. dragEnd[2] .. "\n" ..
             "Camera: " .. cameraCenter[1] .. ", " .. cameraCenter[2] .. "\n" ..
-            "Zoom: " .. zoomVelocity
+            "Zoom coeff: " .. zoomVelocity .. "\n" ..
+            "Pattern scale: " .. patternScale .. "\n" ..
+            "Time offset: " .. timeOffset .. "\n" ..
+            "Time increment: " .. timeStepIncrement .. "\n" ..
+            "Shift held: " .. tostring(isShiftHeld())
         , 0, 0)
     end
 end
 
 function love.update(dt)
+    if not paused then
+        pausedTime = love.timer.getTime()
+    end
+
     if love.mouse.isDown(1) then
         dragEnd = {love.mouse.getX(), love.mouse.getY()}
     end
 
-    if love.keyboard.isDown("=") then
+    if love.keyboard.isDown("=") and not isShiftHeld() then
         zoomVelocity = zoomVelocity * (1.0 + 0.05 * dt)
-    elseif love.keyboard.isDown("-") then
+    elseif love.keyboard.isDown("-") and not isShiftHeld() then
         zoomVelocity = zoomVelocity * (1.0 - 0.05 * dt)
     else
         zoomVelocity = zoomVelocity - (zoomVelocity - 1) * dt
+    end
+
+    if isShiftHeld() then
+        if love.keyboard.isDown(",") then
+            timeOffset = timeOffset - timeStepIncrement * dt
+        elseif love.keyboard.isDown(".") then
+            timeOffset = timeOffset + timeStepIncrement * dt
+        end
     end
 
     if zoomVelocity ~= 0 then
@@ -162,12 +198,29 @@ function love.keypressed(key)
         nextShader()
         resetViewport()
     elseif key == "p" then
+        if paused then
+            timeOffset = timeOffset - (love.timer.getTime() - pausedTime)
+        end
+
         paused = not paused
     elseif key == "r" then
         reloadShader()
         resetViewport()
-    elseif key == "0" then
+    elseif key == "0" and isShiftHeld() then
+        timeOffset = 0.0
+        pausedTime = 0.0
+    elseif key == "0" and not isShiftHeld() then
         setPatternScale(1.0)
+    elseif key == "-" and isShiftHeld() then
+        decreaseTimestep()
+    elseif key == "=" and isShiftHeld() then
+        increaseTimestep()
+    elseif key == "," and not isShiftHeld() then
+        timeOffset = timeOffset - timeStepIncrement
+        sendTime()
+    elseif key == "." and not isShiftHeld() then
+        timeOffset = timeOffset + timeStepIncrement
+        sendTime()
     elseif key == "/" then
         debugInfo = not debugInfo
     end
