@@ -41,6 +41,16 @@ function nextShader()
     reloadShader()
 end
 
+function prevShader()
+    shaderNum = shaderNum - 1
+    if shaderNum < 1 then
+        shaderNum = #shaderFiles
+    end
+
+    resetViewport()
+    reloadShader()
+end
+
 function setCanvas()
     if canvas ~= nil then
         canvas:release()
@@ -194,8 +204,11 @@ function love.keypressed(key)
         setDefaultViewportTransform()
         resetViewport()
         sendViewportTransform()
-    elseif key == "n" then
+    elseif key == "n" and not isShiftHeld() then
         nextShader()
+        resetViewport()
+    elseif key == "n" and isShiftHeld() then
+        prevShader()
         resetViewport()
     elseif key == "p" then
         if paused then
