@@ -4,14 +4,14 @@ uniform float time;
 uniform vec2 mouse;
 uniform mat2 window_scale;
 
-int slices = 8;
+int slices = 16;
 int iterations = slices;
 
 float pattern_scale = 0.5;
 float band_r = 0.7 * pattern_scale;
 float arc_center_r = 0.6 * pattern_scale;
-float rotation_period = 36.0;
-float sharpening_coeff = 1.5;
+float rotation_period = 1000.0;
+float sharpening_coeff = 1.0;
 
 float pos_sine(float theta)
 {
