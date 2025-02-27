@@ -258,3 +258,9 @@ function love.mousereleased(x, y, button)
         love.mouse.setVisible(true)
     end
 end
+
+function love.wheelmoved(x, y)
+    if y ~= 0 then
+        zoomVelocity = zoomVelocity * (1.0 + 0.25 * y * love.timer.getDelta())
+    end
+end
